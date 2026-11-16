@@ -7,7 +7,7 @@ Data file: `data/notices.json`
 ## Publishing workflow
 
 1. Obtain the final, approved notice or circular from the issuing authority.
-2. Confirm its notice number, issue date, category, examination scheme, academic year and exact applicability.
+2. Confirm its notice number, issue date, category, academic year and exact applicability.
 3. Upload the approved PDF to a suitable repository folder (recommended: `documents/notices/`) or use an approved institutional public document URL.
 4. Add a record to the `notices` array in `data/notices.json`.
 5. Set `status` to `published` only after the notice and attachment have been checked and approved for public release. Use `draft` for records not ready for publication.
@@ -22,7 +22,6 @@ Data file: `data/notices.json`
   "title": "Title exactly as approved",
   "category": "Examination",
   "applicability": "B.Tech, First Year, AY 2026–27 admission batch",
-  "scheme": "Autonomous",
   "academic_year": "2026–27",
   "date": "2026-11-16",
   "summary": "Short factual description of the action or information in the notice.",
@@ -57,7 +56,6 @@ Use one of these exact category labels so that the website filters work:
 | `title` | Exact or faithful short title; do not alter the meaning |
 | `category` | One of the six allowed categories |
 | `applicability` | Specify programme, semester, batch and other limits stated in the notice |
-| `scheme` | Use `Autonomous`, `SPPU`, or a precise combined description only if the notice genuinely applies to both |
 | `academic_year` | For example, `2026–27`; use the year stated in the notice |
 | `date` | Issue date in `YYYY-MM-DD` format |
 | `summary` | Concise factual summary; retain the full approved notice as the authority |
@@ -78,7 +76,7 @@ Use one of these exact category labels so that the website filters work:
 
 - [ ] Approval/public-release authorization confirmed
 - [ ] Notice number and issue date checked
-- [ ] Programme, semester, batch and scheme verified
+- [ ] Programme, semester and admission batch verified
 - [ ] Academic year and category selected
 - [ ] PDF opens and is legible
 - [ ] Links and attachments tested

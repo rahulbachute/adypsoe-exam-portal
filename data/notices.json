@@ -1,14 +1,3 @@
 {
-  "notices": [
-    {
-      "id": "sample-001",
-      "title": "Examination notices will be published on this portal",
-      "category": "General",
-      "applicability": "All programmes",
-      "scheme": "As specified in individual notices",
-      "date": "2026-11-16",
-      "status": "draft",
-      "link": ""
-    }
-  ]
+  "notices": []
 }

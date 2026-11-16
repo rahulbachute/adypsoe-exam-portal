@@ -30,3 +30,20 @@
 .masthead-codes p{margin:9px 0;line-height:1.25}
 .masthead-accreditation{max-width:1600px;margin:12px auto 0;text-align:center;font-size:clamp(12px,1.5vw,21px);font-weight:700;line-height:1.45;border-bottom:4px solid #171717;padding:0 0 9px}
 @media(max-width:760px){.masthead-inner{grid-template-columns:105px minmax(0,1fr);gap:12px}.masthead-emblem{min-height:110px;padding-right:10px}.masthead-emblem img{max-height:110px}.masthead-main{padding:0}.masthead-motto{font-size:12px}.masthead-trust{font-size:11px}.masthead-main h1 span{font-size:clamp(26px,7vw,40px)}.masthead-main h1 strong{font-size:clamp(11px,3.1vw,18px);white-space:normal}.masthead-codes{grid-column:1/-1;border-left:0;border-top:2px solid #222;padding:8px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:12px}.masthead-codes p{margin:3px 0}.masthead-accreditation{font-size:11px}}
+
+/* Compact, refined institutional masthead */
+.institution-masthead{background:#f2f5f9;color:#17283d;padding:12px clamp(12px,2vw,28px) 8px;border-bottom:1px solid #d5dde7;font-family:Georgia,'Times New Roman',serif}
+.masthead-inner{display:grid;grid-template-columns:150px minmax(0,1fr) 235px;align-items:center;gap:18px;max-width:1500px;margin:0 auto;min-height:132px}
+.masthead-emblem{display:flex;justify-content:center;align-items:center;min-height:112px;border-right:1px solid #aab5c3;padding-right:14px}
+.masthead-emblem img{display:block;width:138px;height:112px;object-fit:contain;background:transparent}
+.masthead-main{text-align:center;padding:0 6px}
+.masthead-motto{font-size:16px;font-weight:700;margin:0 0 5px;line-height:1.2;color:#24364c}
+.masthead-trust{font-size:14px;font-weight:700;margin:0 0 1px;color:#34465c}
+.masthead-main h1{margin:0;line-height:1.0;font-family:Georgia,'Times New Roman',serif}
+.masthead-main h1 span{display:block;color:#a92e38;font-size:43px;font-weight:800;letter-spacing:.035em}
+.masthead-main h1 strong{display:block;color:#244c82;font-size:25px;font-weight:800;white-space:nowrap}
+.masthead-codes{border-left:1px solid #aab5c3;padding:0 0 0 15px;text-align:left;font-size:14px;font-weight:700;color:#27384e}
+.masthead-codes p{margin:6px 0;line-height:1.15}
+.masthead-accreditation{max-width:1500px;margin:8px auto 0;text-align:center;font-size:13px;font-weight:700;line-height:1.35;color:#26374b;border-bottom:2px solid #26374b;padding:0 0 7px}
+@media(max-width:900px){.masthead-inner{grid-template-columns:112px minmax(0,1fr) 190px;gap:10px;min-height:115px}.masthead-emblem{min-height:100px;padding-right:8px}.masthead-emblem img{width:104px;height:94px}.masthead-motto{font-size:13px}.masthead-trust{font-size:12px}.masthead-main h1 span{font-size:34px}.masthead-main h1 strong{font-size:19px}.masthead-codes{font-size:12px;padding-left:10px}.masthead-codes p{margin:5px 0}.masthead-accreditation{font-size:11px}}
+@media(max-width:620px){.institution-masthead{padding:10px 12px 7px}.masthead-inner{grid-template-columns:78px minmax(0,1fr);gap:8px;min-height:auto}.masthead-emblem{min-height:82px;padding-right:7px}.masthead-emblem img{width:72px;height:76px}.masthead-main{padding:0}.masthead-motto{font-size:11px;margin-bottom:3px}.masthead-trust{font-size:10px}.masthead-main h1 span{font-size:26px}.masthead-main h1 strong{font-size:13px;white-space:normal}.masthead-codes{grid-column:1/-1;border-left:0;border-top:1px solid #aab5c3;padding:5px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;font-size:10px}.masthead-codes p{margin:2px 0}.masthead-accreditation{font-size:10px;line-height:1.3;margin-top:6px;padding-bottom:5px}}

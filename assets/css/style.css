@@ -14,3 +14,19 @@
 /* Official institute logo */
 .brand-logo{width:58px;height:58px;object-fit:contain;display:block;flex:0 0 auto;background:#fff;border-radius:8px}
 @media(max-width:480px){.brand-logo{width:48px;height:48px}}
+
+/* Institutional letterhead-style masthead on homepage */
+.institution-masthead{background:#fff;color:#111;padding:20px clamp(14px,3vw,38px) 10px;border-bottom:1px solid #d8d8d8;font-family:Georgia,'Times New Roman',serif}
+.masthead-inner{display:grid;grid-template-columns:minmax(150px,19%) minmax(0,1fr) minmax(245px,27%);align-items:center;gap:18px;max-width:1600px;margin:0 auto}
+.masthead-emblem{display:flex;justify-content:center;align-items:center;min-height:150px;border-right:3px solid #171717;padding-right:18px}
+.masthead-emblem img{display:block;width:100%;max-width:210px;max-height:175px;object-fit:contain}
+.masthead-main{text-align:center;padding:0 10px}
+.masthead-motto{font-size:clamp(14px,1.7vw,24px);font-weight:700;margin:0 0 12px;line-height:1.25}
+.masthead-trust{font-size:clamp(13px,1.45vw,21px);font-weight:700;margin:0 0 4px}
+.masthead-main h1{margin:0;line-height:1.05;font-family:Georgia,'Times New Roman',serif}
+.masthead-main h1 span{display:block;color:#b62d36;font-size:clamp(35px,5vw,68px);font-weight:800;letter-spacing:.04em}
+.masthead-main h1 strong{display:block;color:#244c82;font-size:clamp(17px,2.8vw,39px);font-weight:800;white-space:nowrap}
+.masthead-codes{border-left:3px solid #171717;padding:0 0 0 20px;text-align:center;font-size:clamp(13px,1.45vw,21px);font-weight:700}
+.masthead-codes p{margin:9px 0;line-height:1.25}
+.masthead-accreditation{max-width:1600px;margin:12px auto 0;text-align:center;font-size:clamp(12px,1.5vw,21px);font-weight:700;line-height:1.45;border-bottom:4px solid #171717;padding:0 0 9px}
+@media(max-width:760px){.masthead-inner{grid-template-columns:105px minmax(0,1fr);gap:12px}.masthead-emblem{min-height:110px;padding-right:10px}.masthead-emblem img{max-height:110px}.masthead-main{padding:0}.masthead-motto{font-size:12px}.masthead-trust{font-size:11px}.masthead-main h1 span{font-size:clamp(26px,7vw,40px)}.masthead-main h1 strong{font-size:clamp(11px,3.1vw,18px);white-space:normal}.masthead-codes{grid-column:1/-1;border-left:0;border-top:2px solid #222;padding:8px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;font-size:12px}.masthead-codes p{margin:3px 0}.masthead-accreditation{font-size:11px}}

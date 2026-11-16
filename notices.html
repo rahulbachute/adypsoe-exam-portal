@@ -1,1 +1,149 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Notices & Circulars | ADYPSOE</title><link rel="stylesheet" href="assets/css/style.css"></head><body><div id="site-header"></div><section class="page-hero"><div class="container"><div class="breadcrumb">Home / Notices &amp; Circulars</div><p class="eyebrow">EXAMINATION COMMUNICATIONS</p><h1>Notices &amp; Circulars</h1><p>Official examination-related announcements, schedules, instructions and circulars. Check the applicability details in each notice.</p></div></section><main class="container content-section"><div class="content-card"><h2>Published notices</h2><p>Use the search and category filters to locate a notice. Always refer to the linked official document for complete instructions.</p><div class="notice-controls"><input class="field" id="notice-search" type="search" placeholder="Search notice title…"><select class="field" id="notice-category"><option value="">All categories</option><option>Examination</option><option>Timetable</option><option>Results</option><option>Student Instructions</option><option>Faculty</option><option>General</option></select><select class="field" id="notice-scheme"><option value="">All schemes</option><option>SPPU</option><option>Autonomous</option></select></div><div id="notice-table"><p class="empty-state">Loading notice register…</p></div></div><div class="content-card"><h3>Important verification</h3><p>Before following a notice, verify its date, notice number, programme, semester, academic year, admission batch and examination scheme. A notice for an autonomous batch may not apply to an SPPU-affiliated batch, and vice versa.</p></div></main><div id="site-footer"></div><script src="assets/js/app.js"></script><script>let allNotices=[];async function init(){const r=await fetch('data/notices.json');const d=await r.json();allNotices=d.notices.filter(n=>n.status==='published');render();}function render(){const q=document.getElementById('notice-search').value.toLowerCase(),cat=document.getElementById('notice-category').value,scheme=document.getElementById('notice-scheme').value;const rows=allNotices.filter(n=>(n.title||'').toLowerCase().includes(q)&&(!cat||n.category===cat)&&(!scheme||(n.scheme||'').includes(scheme))).sort((a,b)=>b.date.localeCompare(a.date));document.getElementById('notice-table').innerHTML=rows.length?'<div class="table-wrap"><table><thead><tr><th>Date</th><th>Notice</th><th>Category</th><th>Applicability</th><th>Document</th></tr></thead><tbody>'+rows.map(n=>'<tr><td>'+formatDate(n.date)+'</td><td><strong>'+escapeHTML(n.title)+'</strong><br><small>'+escapeHTML(n.scheme||'')+'</small></td><td>'+escapeHTML(n.category||'—')+'</td><td>'+escapeHTML(n.applicability||'—')+'</td><td>'+(n.link?'<a class="card-link" href="'+n.link+'" target="_blank" rel="noopener">Open ↗</a>':'—')+'</td></tr>').join('')+'</tbody></table></div>':'<div class="empty-state">No published notices match your search.</div>';}['notice-search','notice-category','notice-scheme'].forEach(id=>document.getElementById(id).addEventListener('input',render));init().catch(()=>document.getElementById('notice-table').innerHTML='<div class="empty-state">Unable to load notices at this time.</div>');</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Notices &amp; Circulars | ADYPSOE Autonomous Examination Section</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+<div id="site-header"></div>
+<section class="page-hero">
+  <div class="container">
+    <div class="breadcrumb">Home / Notices &amp; Circulars</div>
+    <p class="eyebrow">OFFICIAL EXAMINATION COMMUNICATIONS</p>
+    <h1>Notices &amp; Circulars</h1>
+    <p>Official examination announcements, circulars, schedules and instructions. Check the notice-specific applicability before acting on any communication.</p>
+  </div>
+</section>
+<main class="container content-section">
+  <div class="content-card">
+    <div class="section-heading">
+      <p class="eyebrow">NOTICE REGISTER</p>
+      <h2>Published notices</h2>
+      <p>Search by notice title, notice number or keywords. Use the filters to narrow the register.</p>
+    </div>
+    <div class="notice-controls" role="search" aria-label="Filter published notices">
+      <input class="field" id="notice-search" type="search" placeholder="Search title, notice number or keyword…" aria-label="Search notices">
+      <select class="field" id="notice-category" aria-label="Filter by category">
+        <option value="">All categories</option>
+        <option value="Examination">Examination</option>
+        <option value="Timetable">Timetable</option>
+        <option value="Results">Results</option>
+        <option value="Student Instructions">Student Instructions</option>
+        <option value="Faculty">Faculty</option>
+        <option value="General">General</option>
+      </select>
+      <select class="field" id="notice-scheme" aria-label="Filter by examination scheme">
+        <option value="">All schemes</option>
+        <option value="Autonomous">Autonomous</option>
+        <option value="SPPU">SPPU</option>
+      </select>
+      <select class="field" id="notice-year" aria-label="Filter by academic year">
+        <option value="">All academic years</option>
+      </select>
+    </div>
+    <p id="notice-count" class="muted" aria-live="polite"></p>
+    <div id="notice-register" aria-live="polite"><p class="empty-state">Loading published notices…</p></div>
+  </div>
+
+  <div class="content-card">
+    <p class="eyebrow">CHECK BEFORE YOU ACT</p>
+    <h2>Verify notice applicability</h2>
+    <p>Read the complete official notice and verify the following details before relying on it:</p>
+    <ul>
+      <li>Notice number and issue date.</li>
+      <li>Programme, semester and academic year.</li>
+      <li>Admission batch and applicable examination scheme (Autonomous or SPPU).</li>
+      <li>Action required, responsible person/office and deadline, where specified.</li>
+      <li>Any corrigendum or superseding notice issued subsequently.</li>
+    </ul>
+    <p class="muted">A notice issued for an autonomous batch does not automatically apply to an SPPU-affiliated batch, or vice versa.</p>
+  </div>
+  <div class="content-card">
+    <h2>Need clarification?</h2>
+    <p>For clarification about a published examination notice, contact the Examination Section through the official institutional communication channel. Quote the notice number and date in your communication.</p>
+    <a class="card-link" href="contact.html">Examination Section contact details</a>
+  </div>
+</main>
+<div id="site-footer"></div>
+<script src="assets/js/app.js"></script>
+<script>
+(function(){
+  const dataUrl = "data/notices.json";
+  const search = document.getElementById("notice-search");
+  const category = document.getElementById("notice-category");
+  const scheme = document.getElementById("notice-scheme");
+  const year = document.getElementById("notice-year");
+  const target = document.getElementById("notice-register");
+  const count = document.getElementById("notice-count");
+  let notices = [];
+
+  function safeText(value){return String(value == null ? "" : value);}
+  function safeUrl(value){
+    const url = safeText(value).trim();
+    if(!url) return "";
+    if(/^https:\/\//i.test(url) || /^http:\/\//i.test(url)) return url;
+    if(/^(?!\/)(?!.*\.\.\/)[a-zA-Z0-9_./-]+$/.test(url)) return url;
+    return "";
+  }
+  function esc(value){
+    return safeText(value).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+  }
+  function dateLabel(value){
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(safeText(value))) return "Date not specified";
+    const d = new Date(value + "T00:00:00");
+    return Number.isNaN(d.getTime()) ? "Date not specified" : d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});
+  }
+  function render(){
+    const q = search.value.trim().toLowerCase();
+    const c = category.value, s = scheme.value, y = year.value;
+    const rows = notices.filter(n => {
+      const haystack = [n.title,n.notice_number,n.summary,n.applicability,n.academic_year].map(safeText).join(" ").toLowerCase();
+      return (!q || haystack.includes(q)) &&
+        (!c || n.category === c) &&
+        (!s || safeText(n.scheme).toLowerCase().includes(s.toLowerCase())) &&
+        (!y || n.academic_year === y);
+    }).sort((a,b) => safeText(b.date).localeCompare(safeText(a.date)));
+    count.textContent = rows.length + (rows.length === 1 ? " published notice" : " published notices");
+    if(!rows.length){
+      target.innerHTML = '<div class="empty-state">No published notices match the selected search or filters.</div>';
+      return;
+    }
+    target.innerHTML = '<div class="table-wrap"><table><thead><tr><th>Issue date</th><th>Notice details</th><th>Category</th><th>Applicability</th><th>Document</th></tr></thead><tbody>' +
+      rows.map(n => {
+        const link = safeUrl(n.link);
+        const attachments = Array.isArray(n.attachments) ? n.attachments : [];
+        const docs = [];
+        if(link) docs.push('<a class="card-link" href="' + esc(link) + '" target="_blank" rel="noopener noreferrer">Open notice ↗</a>');
+        attachments.forEach(a => {
+          const u = safeUrl(a.url);
+          if(u) docs.push('<a class="card-link" href="' + esc(u) + '" target="_blank" rel="noopener noreferrer">' + esc(a.label || "Attachment") + ' ↗</a>');
+        });
+        const number = n.notice_number ? '<small>' + esc(n.notice_number) + '</small><br>' : "";
+        const summary = n.summary ? '<p>' + esc(n.summary) + '</p>' : "";
+        const schemeLabel = n.scheme ? '<small>' + esc(n.scheme) + '</small>' : "";
+        const yearLabel = n.academic_year ? '<br><small>AY ' + esc(n.academic_year) + '</small>' : "";
+        return '<tr><td>' + esc(dateLabel(n.date)) + '</td><td>' + number + '<strong>' + esc(n.title) + '</strong>' + summary + schemeLabel + yearLabel + '</td><td>' + esc(n.category || "—") + '</td><td>' + esc(n.applicability || "Refer to notice") + '</td><td>' + (docs.length ? docs.join("<br>") : "—") + '</td></tr>';
+      }).join("") + '</tbody></table></div>';
+  }
+  [search,category,scheme,year].forEach(el => el.addEventListener("input",render));
+  fetch(dataUrl).then(response => {
+    if(!response.ok) throw new Error("Notice register unavailable");
+    return response.json();
+  }).then(data => {
+    notices = Array.isArray(data.notices) ? data.notices.filter(n => n && n.status === "published" && n.title) : [];
+    const years = [...new Set(notices.map(n => n.academic_year).filter(Boolean))].sort().reverse();
+    years.forEach(value => {
+      const option = document.createElement("option");
+      option.value = value; option.textContent = value; year.appendChild(option);
+    });
+    render();
+  }).catch(() => {
+    count.textContent = "";
+    target.innerHTML = '<div class="empty-state">The notice register could not be loaded. Please try again later or contact the Examination Section.</div>';
+  });
+})();
+</script>
+</body>
+</html>

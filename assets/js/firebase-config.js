@@ -1,9 +1,12 @@
-// Replace values with the Web App configuration from the institute-owned Firebase project.
-// These identifiers are not passwords, but the project must have Authentication and Firestore
-// configured with the security rules supplied in firestore.rules.
+// Firebase Web App configuration for ADYPSOE-Exam-Portal.
+// These identifiers are used by the browser SDK; they are not service-account secrets.
+// Restrict the API key to the authorised website domains and required APIs in Google Cloud.
 export const firebaseConfig = {
-  apiKey: "REPLACE_WITH_FIREBASE_WEB_API_KEY",
-  authDomain: "REPLACE_WITH_PROJECT.firebaseapp.com",
-  projectId: "REPLACE_WITH_PROJECT_ID",
-  appId: "REPLACE_WITH_FIREBASE_APP_ID"
+  apiKey: "AIzaSyDPzg-Ypdo7q0MXSzU98BYNRq9m27lG0bE",
+  authDomain: "adypsoe-exam-portal.firebaseapp.com",
+  projectId: "adypsoe-exam-portal",
+  storageBucket: "adypsoe-exam-portal.firebasestorage.app",
+  messagingSenderId: "637673636484",
+  appId: "1:637673636484:web:87f2ce5cd05c9c2f9a38d1",
+  measurementId: "G-JFD31CR1X9"
 };

@@ -1,0 +1,37 @@
+<!doctype html>
+<html><head><base target="_top"><meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{font:15px Arial,sans-serif;color:#17283d;background:#f5f7fa;margin:0}.wrap{max-width:850px;margin:35px auto;padding:20px}.card{background:#fff;border:1px solid #dce3ec;border-radius:14px;padding:25px;margin:16px 0}.btn{background:#102b50;color:#fff;border:0;border-radius:8px;padding:12px 18px;font-weight:700;cursor:pointer}.muted{color:#68788c;font-size:13px}.tile{border:1px solid #dce3ec;border-radius:10px;padding:18px;margin-top:15px}.status{padding:12px;background:#eef3f8;border-radius:8px;white-space:pre-wrap}
+</style>
+<script src="https://accounts.google.com/gsi/client" async defer></script></head>
+<body><div class="wrap">
+<h1>ADYPSOE Examination Tools</h1><p class="muted">Restricted workspace for authorised examination staff and approved users.</p>
+<div class="card"><h2>Secure sign-in</h2><p>Sign in with your institutional Google account. External Gmail accounts must be approved by the Administrator.</p>
+<div id="g_id_onload" data-client_id="<?= ScriptApp.getService().getUrl() ? 'SET_CLIENT_ID_IN_TEMPLATE' : 'SET_CLIENT_ID_IN_TEMPLATE' ?>" data-callback="handleCredential" data-auto_prompt="false"></div>
+<div id="signin-area" class="status">Administrator configuration is required before sign-in can be enabled.</div>
+</div>
+<div id="workspace" class="card" hidden><h2 id="welcome"></h2><p id="user-meta" class="muted"></p>
+<div class="tile"><h3>Question Paper–Number Register</h3><p>Existing numbering and retrieval tool.</p><button class="btn" onclick="openRegister()">Open register</button><div id="register-status" class="muted"></div></div>
+<div class="tile"><h3>Additional Examination Tools</h3><p class="muted">New tools will appear here when enabled and assigned to your account.</p></div>
+</div></div>
+<script>
+let idToken='';
+function handleCredential(response){
+ idToken=response.credential;
+ document.getElementById('signin-area').textContent='Verifying your account and permissions…';
+ google.script.run.withSuccessHandler(showAccess).withFailureHandler(showError).getMyAccess(idToken);
+}
+function showAccess(result){
+ if(!result||!result.ok){showError({message:'Access could not be verified.'});return;}
+ document.getElementById('workspace').hidden=false;
+ document.getElementById('welcome').textContent='Welcome, '+(result.user.displayName||'Authorised User');
+ document.getElementById('user-meta').textContent=result.user.email+' · '+result.user.role;
+ document.getElementById('signin-area').textContent='Access verified.';
+}
+function showError(error){document.getElementById('signin-area').textContent=error.message||'Access denied.';}
+function openRegister(){
+ document.getElementById('register-status').textContent='Checking tool permission…';
+ google.script.run.withSuccessHandler(r=>{document.getElementById('register-status').textContent=r.message;})
+ .withFailureHandler(showError).openQuestionPaperRegister(idToken);
+}
+</script></body></html>

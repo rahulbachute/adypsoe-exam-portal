@@ -47,7 +47,7 @@ if(!configReady){
       if(email)email.textContent=user.email||"";
       const registerCard=document.getElementById("register-tool-card");
       const permissions=Array.isArray(access.allowedTools)?access.allowedTools:[];
-      if(registerCard && !permissions.includes("question-paper-register")) registerCard.hidden=true;
+      if(registerCard && !permissions.includes("question-paper-register") && !permissions.includes("*") && access.role !== "super_admin") registerCard.hidden=true;
       if(workspace)workspace.hidden=false;
       if(toolsState)toolsState.hidden=true;
     }catch(e){showMessage(toolsState,e.message);await signOut(auth);}

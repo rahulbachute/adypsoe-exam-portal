@@ -45,6 +45,9 @@ if(!configReady){
       const name=document.getElementById("tools-user-name"),email=document.getElementById("tools-user-email");
       if(name)name.textContent="Welcome"+(access.displayName?" "+access.displayName:"");
       if(email)email.textContent=user.email||"";
+      const registerCard=document.getElementById("register-tool-card");
+      const permissions=Array.isArray(access.allowedTools)?access.allowedTools:[];
+      if(registerCard && !permissions.includes("question-paper-register")) registerCard.hidden=true;
       if(workspace)workspace.hidden=false;
       if(toolsState)toolsState.hidden=true;
     }catch(e){showMessage(toolsState,e.message);await signOut(auth);}

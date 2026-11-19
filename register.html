@@ -40,6 +40,7 @@
     const identityEl = document.getElementById("register-identity");
     const frame = document.getElementById("register-frame");
     let currentUser = null;
+    let readySource = null;
     let readyOrigin = null;
     let tokenSent = false;
 
@@ -57,11 +58,12 @@
       } catch (_) { return false; }
     }
     async function sendToken(forceRefresh = false) {
-      if (!currentUser || !readyOrigin || tokenSent) return;
+      if (!currentUser || !readySource || !readyOrigin || tokenSent) return;
       const idToken = await currentUser.getIdToken(forceRefresh);
-      frame.contentWindow.postMessage({ type: "ADYPSOE_FIREBASE_TOKEN", idToken }, readyOrigin);
+      // The ready message comes from Google's inner userHtmlFrame, not the outer iframe.
+      readySource.postMessage({ type: "ADYPSOE_FIREBASE_TOKEN", idToken }, readyOrigin);
       tokenSent = true;
-      showStatus("Secure sign-in verified. Connecting to the staging register…");
+      showStatus("Firebase token sent to the embedded register. Waiting for server verification…");
     }
 
     let app;
@@ -74,8 +76,12 @@
     const db = getFirestore(app);
 
     window.addEventListener("message", async (event) => {
-      if (event.source !== frame.contentWindow || !trustedAppsScriptOrigin(event.origin)) return;
+      // Apps Script HtmlService nests Index.html inside userHtmlFrame.
+      // Accept readiness only from a non-top window on a Google Apps Script origin.
+      if (event.source === window || event.source === frame.contentWindow) return;
+      if (!trustedAppsScriptOrigin(event.origin)) return;
       if (event.data?.type === "ADYPSOE_REGISTER_READY" && currentUser) {
+        readySource = event.source;
         readyOrigin = event.origin;
         tokenSent = false;
         try { await sendToken(true); }
@@ -85,6 +91,7 @@
 
     onAuthStateChanged(auth, async (user) => {
       currentUser = user;
+      readySource = null;
       readyOrigin = null;
       tokenSent = false;
       if (!user) {

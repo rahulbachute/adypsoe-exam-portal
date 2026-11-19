@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Authorised ADYPSOE Question Paper–Number Register.">
+  <title>Question Paper–Number Register | ADYPSOE</title>
+  <link rel="stylesheet" href="assets/css/style.css">
+  <style>
+    .register-frame{width:100%;height:1200px;border:0;background:#fff;border-radius:10px}
+    .register-status{padding:14px 16px;border:1px solid #d8deea;border-radius:8px;background:#f5f7fb}
+  </style>
+</head>
+<body>
+  <div id="site-header"></div>
+  <section class="page-hero"><div class="container">
+    <div class="breadcrumb"><a href="index.html">Home</a> / <a href="tools.html">Examination Tools</a> / Question Paper–Number Register</div>
+    <p class="eyebrow">AUTHORISED EXAMINATION WORKSPACE</p>
+    <h1>Question Paper–Number Register</h1>
+    <p>Existing examination register, accessed through the ADYPSOE Firebase-authenticated portal.</p>
+  </div></section>
+  <main class="container content-section">
+    <div class="content-card">
+      <p id="register-status" class="register-status" role="status">Verifying your portal session and register permissions…</p>
+      <div id="register-identity" class="muted" style="margin:12px 0"></div>
+      <iframe id="register-frame" class="register-frame" title="Question Paper–Number Register" hidden></iframe>
+    </div>
+  </main>
+  <div id="site-footer"></div>
+  <script src="assets/js/app.js"></script>
+  <script type="module">
+    import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { firebaseConfig } from "./assets/js/firebase-config.js";
+
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxWdA2jT_lPamCaio7vSbLq6ORiwjTFRMsS5HDurCaLNc63hOqtg_SsR94dOUTe8QnGLw/exec";
+    const REQUIRED_TOOL = "question-paper-register";
+    const statusEl = document.getElementById("register-status");
+    const identityEl = document.getElementById("register-identity");
+    const frame = document.getElementById("register-frame");
+    let currentUser = null;
+    let readyOrigin = null;
+    let tokenSent = false;
+
+    function showStatus(message) { statusEl.textContent = message; }
+    function allowed(access) {
+      const tools = Array.isArray(access.allowedTools) ? access.allowedTools : [];
+      return access.role === "super_admin" || tools.includes("*") || tools.includes(REQUIRED_TOOL);
+    }
+    function trustedAppsScriptOrigin(origin) {
+      try {
+        const host = new URL(origin).hostname;
+        return host === "script.google.com" ||
+          host === "script.googleusercontent.com" ||
+          host.endsWith(".script.googleusercontent.com");
+      } catch (_) { return false; }
+    }
+    async function sendToken(forceRefresh = false) {
+      if (!currentUser || !readyOrigin || tokenSent) return;
+      const idToken = await currentUser.getIdToken(forceRefresh);
+      frame.contentWindow.postMessage({ type: "ADYPSOE_FIREBASE_TOKEN", idToken }, readyOrigin);
+      tokenSent = true;
+      showStatus("Secure sign-in verified. Connecting to the staging register…");
+    }
+
+    let app;
+    try {
+      app = getApp();
+    } catch (_) {
+      app = initializeApp(firebaseConfig);
+    }
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.addEventListener("message", async (event) => {
+      if (event.source !== frame.contentWindow || !trustedAppsScriptOrigin(event.origin)) return;
+      if (event.data?.type === "ADYPSOE_REGISTER_READY" && currentUser) {
+        readyOrigin = event.origin;
+        tokenSent = false;
+        try { await sendToken(true); }
+        catch (error) { showStatus("Could not establish the secure register session: " + (error.message || error)); }
+      }
+    });
+
+    onAuthStateChanged(auth, async (user) => {
+      currentUser = user;
+      readyOrigin = null;
+      tokenSent = false;
+      if (!user) {
+        showStatus("Your portal session is not active. Please sign in through the Examination Tools login page.");
+        setTimeout(() => { window.location.replace("login.html"); }, 1200);
+        return;
+      }
+      try {
+        if (!user.emailVerified) throw new Error("A verified Google account is required.");
+        const snap = await getDoc(doc(db, "authorisedUsers", user.uid));
+        if (!snap.exists()) throw new Error("Your account is not authorised for the Examination Portal.");
+        const access = snap.data();
+        if (access.active !== true) throw new Error("Your examination-tools access is disabled.");
+        if (!allowed(access)) throw new Error("You are not authorised to use the Question Paper–Number Register.");
+        identityEl.textContent = "Signed in as " + (user.email || "");
+        if (!WEB_APP_URL.endsWith("/exec")) throw new Error("The staging Apps Script Web App URL is not configured correctly.");
+        frame.hidden = false;
+        frame.src = WEB_APP_URL;
+        showStatus("Portal access verified. Waiting for the staging register to establish a secure connection…");
+      } catch (error) {
+        showStatus(error.message || "Register access could not be verified.");
+      }
+    });
+  </script>
+</body>
+</html>

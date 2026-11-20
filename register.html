@@ -30,88 +30,183 @@
   <script src="assets/js/app.js"></script>
   <script type="module">
     import { initializeApp, getApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, onIdTokenChanged } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
     import { firebaseConfig } from "./assets/js/firebase-config.js";
 
+    /* ======================================================================
+     * ADYPSOE portal  <->  Apps Script register : handshake protocol v1
+     *
+     * Frame tree:  this page (top) > script.google.com/.../exec (outer, Google)
+     *              > <hash>-script.googleusercontent.com (inner userHtmlFrame = Index.html)
+     *
+     *  inner -> portal  ADYPSOE_REGISTER_READY   {v, nonce, reason}
+     *  portal -> inner  ADYPSOE_FIREBASE_TOKEN   {v, nonce, idToken}  (posted to event.source = the INNER window)
+     *  inner -> portal  ADYPSOE_TOKEN_REQUEST    {v, nonce, reason}
+     *  inner -> portal  ADYPSOE_REGISTER_STATUS  {v, nonce, state, message?}   (display only, never a security decision)
+     *
+     * Rules enforced here:
+     *  - The register iframe is not even loaded until Firestore authorisation succeeds.
+     *  - A sender is accepted only if its window's parent is our iframe AND its origin is an
+     *    Apps Script sandbox origin (<hash>-script.googleusercontent.com).
+     *  - The token is posted only to that exact window and origin, never "*".
+     *  - Tokens are never logged, put in URLs, or stored.
+     *  Add ?debug to this page's URL for diagnostic logging (no tokens are ever printed).
+     * ====================================================================== */
     const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxWdA2jT_lPamCaio7vSbLq6ORiwjTFRMsS5HDurCaLNc63hOqtg_SsR94dOUTe8QnGLw/exec";
     const REQUIRED_TOOL = "question-paper-register";
+    const PROTOCOL_VERSION = 1;
+    const MSG = {
+      READY: "ADYPSOE_REGISTER_READY",
+      TOKEN: "ADYPSOE_FIREBASE_TOKEN",
+      TOKEN_REQUEST: "ADYPSOE_TOKEN_REQUEST",
+      STATUS: "ADYPSOE_REGISTER_STATUS"
+    };
+    // Apps Script HtmlService pages run on https://<hash>-script.googleusercontent.com
+    // (the hash is joined with a HYPHEN, so a ".script.googleusercontent.com" suffix test never matches).
+    const APPS_SCRIPT_SANDBOX_ORIGIN = /^https:\/\/(?:[a-z0-9-]+-)?script\.googleusercontent\.com$/;
+    const NONCE_FORMAT = /^[a-f0-9]{16,64}$/;
+    const DEBUG = new URLSearchParams(location.search).has("debug");
+    const dbg = (...args) => { if (DEBUG) console.log("[register-portal]", ...args); };
+
     const statusEl = document.getElementById("register-status");
     const identityEl = document.getElementById("register-identity");
     const frame = document.getElementById("register-frame");
+
     let currentUser = null;
-    let readySource = null;
-    let readyOrigin = null;
-    let tokenSent = false;
+    let authorised = false;       // true only after the Firestore check passed for currentUser
+    let loadedUid = null;         // uid for which the register iframe has been loaded
+    let session = null;           // { source, origin, nonce, delivered, busy } for the live inner frame
+    let tokenRequestTimes = [];   // rate limit for TOKEN_REQUEST
 
     function showStatus(message) { statusEl.textContent = message; }
     function allowed(access) {
       const tools = Array.isArray(access.allowedTools) ? access.allowedTools : [];
       return access.role === "super_admin" || tools.includes("*") || tools.includes(REQUIRED_TOOL);
     }
-    function trustedAppsScriptOrigin(origin) {
-      try {
-        const host = new URL(origin).hostname;
-        return host === "script.google.com" ||
-          host === "script.googleusercontent.com" ||
-          host.endsWith(".script.googleusercontent.com");
-      } catch (_) { return false; }
-    }
-    async function sendToken(forceRefresh = false) {
-      if (!currentUser || !readySource || !readyOrigin || tokenSent) return;
-      const idToken = await currentUser.getIdToken(forceRefresh);
-      // The ready message comes from Google's inner userHtmlFrame, not the outer iframe.
-      readySource.postMessage({ type: "ADYPSOE_FIREBASE_TOKEN", idToken }, readyOrigin);
-      tokenSent = true;
-      showStatus("Firebase token sent to the embedded register. Waiting for server verification…");
-    }
 
     let app;
-    try {
-      app = getApp();
-    } catch (_) {
-      app = initializeApp(firebaseConfig);
-    }
+    try { app = getApp(); } catch (_) { app = initializeApp(firebaseConfig); }
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    window.addEventListener("message", async (event) => {
-      // Apps Script HtmlService nests Index.html inside userHtmlFrame.
-      // Accept readiness only from a non-top window on a Google Apps Script origin.
-      if (event.source === window || event.source === frame.contentWindow) return;
-      if (!trustedAppsScriptOrigin(event.origin)) return;
-      if (event.data?.type === "ADYPSOE_REGISTER_READY" && currentUser) {
-        readySource = event.source;
-        readyOrigin = event.origin;
-        tokenSent = false;
-        try { await sendToken(true); }
-        catch (error) { showStatus("Could not establish the secure register session: " + (error.message || error)); }
+    function resetRegister() {
+      authorised = false;
+      loadedUid = null;
+      session = null;
+      frame.hidden = true;
+      frame.src = "about:blank";
+      identityEl.textContent = "";
+    }
+
+    // Returns null if the sender is acceptable, otherwise a short reason (for diagnostics only).
+    function senderProblem(event) {
+      if (!event.source || event.source === window) return "sender-is-portal";
+      if (event.source === frame.contentWindow) return "sender-is-outer-frame";
+      let parentIsRegisterFrame = false;
+      try { parentIsRegisterFrame = event.source.parent === frame.contentWindow; } catch (_) {}
+      if (!parentIsRegisterFrame) return "sender-is-not-a-child-of-the-register-iframe";
+      if (!APPS_SCRIPT_SANDBOX_ORIGIN.test(event.origin)) return "origin-not-apps-script-sandbox";
+      return null;
+    }
+
+    async function deliverToken(s, forceRefresh) {
+      if (!s || s !== session || !authorised || !currentUser || s.busy) return;
+      s.busy = true;
+      try {
+        const idToken = await currentUser.getIdToken(forceRefresh);
+        if (s !== session || !authorised) return;           // frame reloaded or user changed meanwhile
+        s.source.postMessage({ type: MSG.TOKEN, v: PROTOCOL_VERSION, nonce: s.nonce, idToken }, s.origin);
+        s.delivered = true;
+        dbg("token delivered", { origin: s.origin, forceRefresh });
+        showStatus("Firebase token sent to the embedded register. Waiting for server verification…");
+      } catch (error) {
+        showStatus("Could not establish the secure register session: " + (error.message || error));
+      } finally {
+        s.busy = false;
+      }
+    }
+
+    window.addEventListener("message", (event) => {
+      const d = event.data;
+      // Ignore everything that is not part of our protocol (Google's frames post their own messages).
+      if (!d || typeof d !== "object" || typeof d.type !== "string" || !d.type.startsWith("ADYPSOE_")) return;
+      if (d.type === MSG.TOKEN) return;                      // our own outbound type: never act on it (loop guard)
+      const problem = senderProblem(event);
+      if (problem) { dbg("rejected", d.type, problem, event.origin); return; }
+      if (d.v !== PROTOCOL_VERSION || typeof d.nonce !== "string" || !NONCE_FORMAT.test(d.nonce)) {
+        dbg("rejected", d.type, "bad-version-or-nonce"); return;
+      }
+
+      switch (d.type) {
+        case MSG.READY: {
+          const sameFrame = session && session.source === event.source && session.nonce === d.nonce;
+          if (sameFrame && session.delivered) { dbg("duplicate READY ignored"); return; }
+          if (!sameFrame) {
+            // New page load inside the register iframe (first load or reload): new session.
+            session = { source: event.source, origin: event.origin, nonce: d.nonce, delivered: false, busy: false };
+          }
+          if (authorised) deliverToken(session, false);
+          else dbg("READY received before authorisation completed; token will be sent after it succeeds");
+          break;
+        }
+        case MSG.TOKEN_REQUEST: {
+          if (!session || session.source !== event.source || session.nonce !== d.nonce) { dbg("TOKEN_REQUEST from unknown session"); return; }
+          const now = Date.now();
+          tokenRequestTimes = tokenRequestTimes.filter(t => now - t < 60000);
+          if (tokenRequestTimes.length >= 6) { dbg("TOKEN_REQUEST rate-limited"); return; }
+          tokenRequestTimes.push(now);
+          deliverToken(session, d.reason === "rejected");    // force a server refresh only after the backend rejected a token
+          break;
+        }
+        case MSG.STATUS: {
+          if (!session || session.source !== event.source || session.nonce !== d.nonce) return;
+          if (d.state === "verified") showStatus("Secure session established. The register backend verified your identity and permission.");
+          else if (d.state === "error") showStatus("The register backend reported: " + String(d.message || "verification failed").slice(0, 300));
+          break;
+        }
+        default: dbg("unknown ADYPSOE message type", d.type);
+      }
+    });
+
+    // Firebase refreshes the ID token about hourly; push each new token to the live register session.
+    onIdTokenChanged(auth, (user) => {
+      if (user && currentUser && user.uid === currentUser.uid && authorised && session && session.delivered) {
+        currentUser = user;
+        deliverToken(session, false);
       }
     });
 
     onAuthStateChanged(auth, async (user) => {
-      currentUser = user;
-      readySource = null;
-      readyOrigin = null;
-      tokenSent = false;
       if (!user) {
+        currentUser = null;
+        resetRegister();
         showStatus("Your portal session is not active. Please sign in through the Examination Tools login page.");
         setTimeout(() => { window.location.replace("login.html"); }, 1200);
         return;
       }
+      if (authorised && loadedUid === user.uid) { currentUser = user; return; }   // same user, nothing to redo
+      resetRegister();
+      currentUser = user;
       try {
         if (!user.emailVerified) throw new Error("A verified Google account is required.");
         const snap = await getDoc(doc(db, "authorisedUsers", user.uid));
+        if (currentUser !== user) return;                    // user changed while the check was running
         if (!snap.exists()) throw new Error("Your account is not authorised for the Examination Portal.");
         const access = snap.data();
         if (access.active !== true) throw new Error("Your examination-tools access is disabled.");
         if (!allowed(access)) throw new Error("You are not authorised to use the Question Paper–Number Register.");
-        identityEl.textContent = "Signed in as " + (user.email || "");
         if (!WEB_APP_URL.endsWith("/exec")) throw new Error("The staging Apps Script Web App URL is not configured correctly.");
+
+        authorised = true;                                   // from here on the token may be released
+        loadedUid = user.uid;
+        identityEl.textContent = "Signed in as " + (user.email || "");
         frame.hidden = false;
         frame.src = WEB_APP_URL;
         showStatus("Portal access verified. Waiting for the staging register to establish a secure connection…");
+        if (session && !session.delivered) deliverToken(session, false);   // READY that arrived early
       } catch (error) {
+        resetRegister();
         showStatus(error.message || "Register access could not be verified.");
       }
     });

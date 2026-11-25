@@ -53,7 +53,7 @@
      *  - Tokens are never logged, put in URLs, or stored.
      *  Add ?debug to this page's URL for diagnostic logging (no tokens are ever printed).
      * ====================================================================== */
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxWdA2jT_lPamCaio7vSbLq6ORiwjTFRMsS5HDurCaLNc63hOqtg_SsR94dOUTe8QnGLw/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby7ZF9cK-UUWzznqqU4zCSVfuxCIVbY7kZcgLBmzTPVFqlbPeTczc8RYXn85gaIzUn-Sw/exec";
     const REQUIRED_TOOL = "question-paper-register";
     const PROTOCOL_VERSION = 1;
     const MSG = {
@@ -196,14 +196,14 @@
         const access = snap.data();
         if (access.active !== true) throw new Error("Your examination-tools access is disabled.");
         if (!allowed(access)) throw new Error("You are not authorised to use the Question Paper–Number Register.");
-        if (!WEB_APP_URL.endsWith("/exec")) throw new Error("The staging Apps Script Web App URL is not configured correctly.");
+        if (!WEB_APP_URL.endsWith("/exec")) throw new Error("The production Apps Script Web App URL is not configured correctly.");
 
         authorised = true;                                   // from here on the token may be released
         loadedUid = user.uid;
         identityEl.textContent = "Signed in as " + (user.email || "");
         frame.hidden = false;
         frame.src = WEB_APP_URL;
-        showStatus("Portal access verified. Waiting for the staging register to establish a secure connection…");
+        showStatus("Portal access verified. Waiting for the production register to establish a secure connection…");
         if (session && !session.delivered) deliverToken(session, false);   // READY that arrived early
       } catch (error) {
         resetRegister();

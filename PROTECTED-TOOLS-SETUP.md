@@ -39,10 +39,40 @@ Create this document only from a trusted administrator account after the user ha
 - Preserve existing register allocation, audit, status-update and Google Sheet workflows.
 - The production spreadsheet should remain restricted; Apps Script execution access must be reviewed and tested.
 
-## Production integration status
+## Verification status (25 November 2026)
+
+### Local integration test — PASSED (user-confirmed)
+Testing was completed through VS Code Live Server at `http://127.0.0.1:5500/`, with the portal login and Examination Tools navigation.
+
+Verified successfully:
+- Portal login with Firebase Google Authentication.
+- Firestore authorisation gate.
+- Portal-to-Apps-Script secure handshake.
+- Firebase ID token delivery to the embedded register.
+- Backend identity and permission verification.
+- Secure session established.
+- Examination Type dropdown loads.
+- Subject dropdown loads and subject codes populate.
+- User reports the register workflow is functioning correctly.
+
+The sender validation was corrected to account for Google Apps Script's nested sandbox iframe structure. The portal validates the approved Apps Script sandbox origin and then binds the active session to the exact message source, origin and nonce.
+
+### Remaining release verification — NOT YET COMPLETED
+The successful test was local, not from the public GitHub Pages origin. Before release, test:
+- Authorised account from the public Pages origin.
+- Unauthorised account.
+- Disabled account.
+- Tool-level permission denial.
+- Register read/search.
+- New number allocation (only when safe to test against the approved production register).
+- Status update.
+- Direct Apps Script URL access and denial of unauthorised operations.
+- Confirm deployed Firebase configuration, Firestore rules and Apps Script deployment are the intended production versions.
+
+### Release state
 - Firebase configuration and administrator authorisation record: configured.
 - Production spreadsheet and Apps Script: configured.
 - Production Web App URL: integrated in the feature branch.
-- Backend token and per-operation authorisation checks: reviewed in the current Apps Script source.
-- End-to-end production verification: **pending**.
-- PR remains draft; do not merge or launch until verification and release approval are complete.
+- Local integration: **PASSED (user-confirmed)**.
+- Public-origin production verification: **pending**.
+- PR remains draft; do not merge or launch until remaining verification and release approval are complete.

@@ -99,13 +99,12 @@
       identityEl.textContent = "";
     }
 
-    // Returns null if the sender is acceptable, otherwise a short reason (for diagnostics only).
+    // Google Apps Script uses nested sandbox frames; the inner sender is not
+    // necessarily a direct child of the portal iframe. Validate its origin,
+    // then bind the accepted source/origin/nonce to the active session.
     function senderProblem(event) {
       if (!event.source || event.source === window) return "sender-is-portal";
       if (event.source === frame.contentWindow) return "sender-is-outer-frame";
-      let parentIsRegisterFrame = false;
-      try { parentIsRegisterFrame = event.source.parent === frame.contentWindow; } catch (_) {}
-      if (!parentIsRegisterFrame) return "sender-is-not-a-child-of-the-register-iframe";
       if (!APPS_SCRIPT_SANDBOX_ORIGIN.test(event.origin)) return "origin-not-apps-script-sandbox";
       return null;
     }

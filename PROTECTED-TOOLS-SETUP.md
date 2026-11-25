@@ -31,13 +31,18 @@ Create this document only from a trusted administrator account after the user ha
 7. Create authorisation documents only through a trusted administrative workflow.
 8. Test with an unauthorised Google account, an authorised institutional account, an authorised external Gmail account, and a disabled account.
 
-## Critical integration requirement for the Question Paper–Number Register
-The login page and workspace gate do **not** by themselves secure the existing Google Apps Script register. A user could otherwise open its deployment URL directly. Before publishing the register tile:
-- Modify the Apps Script backend to validate a cryptographically verified identity token and check the user's active tool permission on every read and write operation.
+## Question Paper–Number Register integration
+- The portal checks Firebase sign-in, email verification, active authorisation and tool permission before loading the register iframe.
+- The Apps Script backend independently validates the Firebase ID token using Firebase Identity Toolkit and reads the user's Firestore authorisation record. It checks active status, email consistency, role and required tool permission on every data operation.
 - Do not trust an email address, role or UID sent as ordinary form data by the browser.
-- Do not expose the register's Apps Script deployment URL or enable the tile until backend verification is complete.
+- The production Apps Script Web App URL is configured in `register.html`. The register should only be released after end-to-end tests, including direct-URL and unauthorised-user checks.
 - Preserve existing register allocation, audit, status-update and Google Sheet workflows.
-- Keep the existing Apps Script deployment and spreadsheet permissions restricted appropriately.
+- The production spreadsheet should remain restricted; Apps Script execution access must be reviewed and tested.
 
-## Deployment status
-This repository contains the frontend scaffold and Firestore rules only. Authentication is intentionally disabled until the institute-owned Firebase configuration is supplied. The register integration is intentionally pending until its Apps Script backend is updated and tested. Do not describe this scaffold as production-secure until those steps and direct-URL bypass tests pass.
+## Production integration status
+- Firebase configuration and administrator authorisation record: configured.
+- Production spreadsheet and Apps Script: configured.
+- Production Web App URL: integrated in the feature branch.
+- Backend token and per-operation authorisation checks: reviewed in the current Apps Script source.
+- End-to-end production verification: **pending**.
+- PR remains draft; do not merge or launch until verification and release approval are complete.

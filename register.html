@@ -47,8 +47,10 @@
      *
      * Rules enforced here:
      *  - The register iframe is not even loaded until Firestore authorisation succeeds.
-     *  - A sender is accepted only if its window's parent is our iframe AND its origin is an
-     *    Apps Script sandbox origin (<hash>-script.googleusercontent.com).
+     *  - The sender must not be the portal or outer iframe window and must have an approved
+     *    Apps Script sandbox origin (<hash>-script.googleusercontent.com). Google may nest
+     *    sandbox frames, so direct-parent checks are not reliable. The accepted source/origin
+     *    are then bound to the active nonce-based session.
      *  - The token is posted only to that exact window and origin, never "*".
      *  - Tokens are never logged, put in URLs, or stored.
      *  Add ?debug to this page's URL for diagnostic logging (no tokens are ever printed).
